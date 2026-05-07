@@ -3,6 +3,10 @@ import axios from 'axios';
 import './PaymentPage.css';
 
 const API_BASE = process.env.REACT_APP_API_URL || '';
+const PAYMENT_AMOUNT = 2.00;
+const ACCESS_DURATION_HOURS = 12;
+const YAPE_QR_URL =
+  'https://customer-assets.emergentagent.com/wingman/b09505ba-190e-4ca7-9d47-23f73249f18b/attachments/79843c85932d47c69d4a1668707b1b44_yape%20986083251%20%281%29.jpg';
 
 export default function PaymentPage({ character, onNavigate }) {
   const [step, setStep] = useState('form');
@@ -11,7 +15,8 @@ export default function PaymentPage({ character, onNavigate }) {
   const [verifyCode, setVerifyCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [copied, setCopied] = useState(false);
+  const [copied, setCopied] = useState('');
+  const [accessInfo, setAccessInfo] = useState(null);
 
   if (!character) {
     return (
@@ -26,8 +31,12 @@ export default function PaymentPage({ character, onNavigate }) {
 
   const handleInitiate = async (e) => {
     e.preventDefault();
-    if (!form.name.trim() || !form.phone.trim()) {
-      setError('Por favor completa todos los campos.');
+    if (!form.name.trim()) {
+      setError('Por favor ingresa tu nombre completo.');
+      return;
+    }
+    if (!form.phone.trim()) {
+      setError('Por favor ingresa tu número de celular.');
       return;
     }
     setLoading(true);
@@ -37,6 +46,7 @@ export default function PaymentPage({ character, onNavigate }) {
         character_id: character.id,
         user_name: form.name,
         user_phone: form.phone,
+        amount: PAYMENT_AMOUNT,
       });
       setPaymentData(res.data);
       setStep('instructions');
@@ -47,32 +57,43 @@ export default function PaymentPage({ character, onNavigate }) {
     }
   };
 
-  const copyToClipboard = (text) => {
+  const copyToClipboard = (text, key) => {
     navigator.clipboard.writeText(text).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      setCopied(key);
+      setTimeout(() => setCopied(''), 2000);
     });
   };
 
   const handleVerify = async (e) => {
     e.preventDefault();
-    if (!verifyCode.trim()) {
+    const code = verifyCode.trim() || (paymentData && paymentData.payment_code);
+    if (!code) {
       setError('Ingresa el código de pago.');
       return;
     }
     setLoading(true);
     setError('');
     try {
-      await axios.post(`${API_BASE}/payment/verify`, {
-        payment_code: verifyCode,
+      const res = await axios.post(`${API_BASE}/payment/verify`, {
+        payment_code: code,
         character_id: character.id,
       });
+      setAccessInfo(res.data);
       setStep('success');
     } catch (err) {
-      setError('No pudimos verificar tu pago. Intenta nuevamente.');
+      setError('No pudimos verificar tu pago. Asegúrate de haber enviado el monto correcto.');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoToChat = () => {
+    onNavigate('chat', {
+      character,
+      premium: true,
+      accessToken: accessInfo?.access_token,
+      expiresAt: accessInfo?.expires_at,
+    });
   };
 
   return (
@@ -88,41 +109,43 @@ export default function PaymentPage({ character, onNavigate }) {
           <div className="char-avatar-sm">{character.avatar}</div>
           <div>
             <div className="char-name-sm" style={{ color: character.color }}>{character.name}</div>
-            <div className="char-price-sm">S/ {character.price?.toFixed(2) || '29.90'}/mes</div>
+            <div className="char-price-sm">S/ {PAYMENT_AMOUNT.toFixed(2)} · {ACCESS_DURATION_HOURS}h acceso</div>
           </div>
         </div>
 
         {step === 'form' && (
           <form className="payment-form" onSubmit={handleInitiate}>
             <div className="form-group">
-              <label>Tu nombre completo</label>
+              <label>Nombre completo</label>
               <input
                 type="text"
                 placeholder="Ej: Ana García"
                 value={form.name}
                 onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                 className="form-input"
+                autoComplete="name"
               />
             </div>
             <div className="form-group">
-              <label>Tu número de celular</label>
+              <label>Número de celular</label>
               <input
                 type="tel"
                 placeholder="Ej: 987654321"
                 value={form.phone}
-                onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                onChange={e => setForm(f => ({ ...f, phone: e.target.value.replace(/\D/g, '') }))}
                 className="form-input"
                 maxLength={9}
+                autoComplete="tel"
               />
             </div>
             {error && <div className="error-msg">{error}</div>}
             <button
               type="submit"
               className="btn-pay"
-              style={{ background: character.gradient || '#7C3AED' }}
+              style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)' }}
               disabled={loading}
             >
-              {loading ? 'Procesando...' : 'Continuar con Yape →'}
+              {loading ? 'Procesando...' : `Pagar S/ ${PAYMENT_AMOUNT.toFixed(2)} con Yape →`}
             </button>
           </form>
         )}
@@ -133,36 +156,48 @@ export default function PaymentPage({ character, onNavigate }) {
               <span className="yape-icon">📱</span>
               <span className="yape-text">Yape</span>
             </div>
+
             <div className="payment-amount">
               <span className="amount-label">Monto a pagar</span>
-              <span className="amount-value">S/ {paymentData.amount?.toFixed(2)}</span>
+              <span className="amount-value">S/ {PAYMENT_AMOUNT.toFixed(2)}</span>
             </div>
+
+            <div className="yape-qr-container">
+              <p className="yape-qr-label">Escanea el QR con tu app Yape</p>
+              <img
+                src={YAPE_QR_URL}
+                alt="QR Yape 986083251"
+                className="yape-qr-image"
+                onError={e => { e.target.style.display = 'none'; }}
+              />
+              <p className="yape-qr-hint">O yapea directamente al número:</p>
+            </div>
+
             <div className="yape-number-card">
-              <div className="yape-number-label">Yapea a este número:</div>
+              <div className="yape-number-label">Número Yape:</div>
               <div className="yape-number">{paymentData.yape_number}</div>
-              <button className="btn-copy" onClick={() => copyToClipboard(paymentData.yape_number)}>
-                {copied ? '✅ Copiado' : '📋 Copiar número'}
+              <button className="btn-copy" onClick={() => copyToClipboard(paymentData.yape_number, 'phone')}>
+                {copied === 'phone' ? '✅ Copiado' : '📋 Copiar número'}
               </button>
             </div>
+
             <div className="payment-code-card">
-              <div className="code-label">Escribe este código en el mensaje:</div>
+              <div className="code-label">Escribe este código en el mensaje Yape:</div>
               <div className="payment-code">{paymentData.payment_code}</div>
-              <button className="btn-copy" onClick={() => copyToClipboard(paymentData.payment_code)}>
-                {copied ? '✅ Copiado' : '📋 Copiar código'}
+              <button className="btn-copy" onClick={() => copyToClipboard(paymentData.payment_code, 'code')}>
+                {copied === 'code' ? '✅ Copiado' : '📋 Copiar código'}
               </button>
             </div>
-            <div className="instructions-list">
-              {paymentData.instructions?.map((inst, i) => (
-                <div key={i} className="instruction-item">
-                  <span className="instruction-num">{i + 1}</span>
-                  <span>{inst.replace(/^\d+\.\s*/, '')}</span>
-                </div>
-              ))}
+
+            <div className="access-info-banner">
+              <span>⏱</span>
+              <span>Tu acceso durará <strong>{ACCESS_DURATION_HOURS} horas</strong> desde la verificación</span>
             </div>
+
             <button
               className="btn-done"
               onClick={() => setStep('verify')}
-              style={{ background: character.gradient || '#7C3AED' }}
+              style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)' }}
             >
               Ya realicé el pago ✓
             </button>
@@ -172,14 +207,16 @@ export default function PaymentPage({ character, onNavigate }) {
         {step === 'verify' && (
           <form className="payment-verify" onSubmit={handleVerify}>
             <div className="verify-icon">🔍</div>
-            <h3 className="verify-title">Verificar pago</h3>
-            <p className="verify-desc">Ingresa el código que recibiste para confirmar tu pago</p>
+            <h3 className="verify-title">Confirmar pago</h3>
+            <p className="verify-desc">
+              Haz clic en "Verificar pago" para confirmar. El código ya está prellenado.
+            </p>
             <div className="form-group">
               <label>Código de pago</label>
               <input
                 type="text"
-                placeholder="Ej: AB123456"
-                value={verifyCode}
+                placeholder={paymentData?.payment_code || 'AB123456'}
+                value={verifyCode || paymentData?.payment_code || ''}
                 onChange={e => setVerifyCode(e.target.value.toUpperCase())}
                 className="form-input"
                 maxLength={8}
@@ -189,7 +226,7 @@ export default function PaymentPage({ character, onNavigate }) {
             <button
               type="submit"
               className="btn-pay"
-              style={{ background: character.gradient || '#7C3AED' }}
+              style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)' }}
               disabled={loading}
             >
               {loading ? 'Verificando...' : 'Verificar pago'}
@@ -203,16 +240,21 @@ export default function PaymentPage({ character, onNavigate }) {
         {step === 'success' && (
           <div className="payment-success">
             <div className="success-icon animate-glow">✅</div>
-            <h3 className="success-title">¡Pago recibido!</h3>
+            <h3 className="success-title">¡Pago verificado!</h3>
             <p className="success-desc">
-              Tu pago está siendo verificado. En unos minutos tendrás acceso completo a {character.name}.
+              Tienes <strong>{ACCESS_DURATION_HOURS} horas</strong> de acceso completo a {character.name}.
+              {accessInfo?.expires_at && (
+                <span className="expires-note">
+                  <br />Expira: {new Date(accessInfo.expires_at).toLocaleString('es-PE')}
+                </span>
+              )}
             </p>
             <button
               className="btn-pay"
-              style={{ background: character.gradient || '#7C3AED' }}
-              onClick={() => onNavigate('chat', { character, premium: true })}
+              style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)' }}
+              onClick={handleGoToChat}
             >
-              Ir a chatear con {character.name} 💬
+              ¡Chatear con {character.name}! 💬
             </button>
           </div>
         )}

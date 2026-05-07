@@ -359,3 +359,22 @@
     font-size: 14px;
   }
 }
+
+.access-timer {
+  font-size: 12px;
+  color: #A78BFA;
+  background: rgba(139,92,246,0.1);
+  border: 1px solid rgba(139,92,246,0.3);
+  border-radius: 20px;
+  padding: 6px 12px;
+  white-space: nowrap;
+}
+
+.access-expired-badge {
+  font-size: 11px;
+  color: #FCA5A5;
+  background: rgba(239,68,68,0.1);
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: 20px;
+  padding: 6px 10px;
+}

@@ -337,3 +337,59 @@
   line-height: 1.6;
   max-width: 320px;
 }
+
+.yape-qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(139,92,246,0.3);
+  border-radius: 20px;
+  padding: 20px;
+}
+
+.yape-qr-label {
+  font-size: 13px;
+  color: #A78BFA;
+  text-align: center;
+  margin: 0;
+}
+
+.yape-qr-hint {
+  font-size: 12px;
+  color: #7C6A9A;
+  text-align: center;
+  margin: 4px 0 0;
+}
+
+.yape-qr-image {
+  width: 200px;
+  height: 200px;
+  object-fit: contain;
+  border-radius: 12px;
+  background: white;
+  padding: 8px;
+  display: block;
+}
+
+.access-info-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(124,58,237,0.1);
+  border: 1px solid rgba(124,58,237,0.3);
+  border-radius: 14px;
+  padding: 14px 18px;
+  font-size: 14px;
+  color: #C4B5FD;
+}
+
+.access-info-banner span:first-child {
+  font-size: 18px;
+}
+
+.expires-note {
+  font-size: 12px;
+  color: #7C6A9A;
+}

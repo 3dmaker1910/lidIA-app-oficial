@@ -1,16 +1,29 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import './ChatPage.css';
 
 const API_BASE = process.env.REACT_APP_API_URL || '';
 const FREE_MESSAGE_LIMIT = 3;
+const ACCESS_DURATION_MS = 12 * 60 * 60 * 1000;
 
-export default function ChatPage({ character, isPremium, onNavigate }) {
+function formatTimeLeft(paidAt) {
+  if (!paidAt) return null;
+  const elapsed = Date.now() - paidAt;
+  const remaining = ACCESS_DURATION_MS - elapsed;
+  if (remaining <= 0) return '0h 0m';
+  const hours = Math.floor(remaining / (1000 * 60 * 60));
+  const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+  return `${hours}h ${minutes}m`;
+}
+
+export default function ChatPage({ character, isPremium, accessToken, paidAt, accessExpiresAt, onNavigate, onAccessExpired }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [msgCount, setMsgCount] = useState(0);
   const [showPaywall, setShowPaywall] = useState(false);
+  const [accessExpired, setAccessExpired] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -22,11 +35,31 @@ export default function ChatPage({ character, isPremium, onNavigate }) {
     gradient: 'linear-gradient(135deg, #7C3AED, #EC4899)',
   };
 
+  const checkAccess = useCallback(() => {
+    if (!isPremium || !paidAt) return true;
+    const elapsed = Date.now() - paidAt;
+    return elapsed < ACCESS_DURATION_MS;
+  }, [isPremium, paidAt]);
+
+  useEffect(() => {
+    if (!isPremium || !paidAt) return;
+    setTimeLeft(formatTimeLeft(paidAt));
+    const timer = setInterval(() => {
+      const left = formatTimeLeft(paidAt);
+      setTimeLeft(left);
+      if (!checkAccess()) {
+        setAccessExpired(true);
+        clearInterval(timer);
+      }
+    }, 60 * 1000);
+    return () => clearInterval(timer);
+  }, [isPremium, paidAt, checkAccess]);
+
   useEffect(() => {
     const welcome = {
       id: Date.now(),
       role: 'assistant',
-      content: `¡Hola! Soy ${char.name} ${char.avatar}\n\n${char.description || 'Estoy aquí para ayudarte. ¿De qué quieres hablar hoy?'}${!isPremium ? `\n\n💜 Tienes ${FREE_MESSAGE_LIMIT} mensajes gratuitos. ¡Aprovéchalos!` : ''}`,
+      content: `¡Hola! Soy ${char.name} ${char.avatar}\n\n${char.description || 'Estoy aquí para ayudarte. ¿De qué quieres hablar hoy?'}${!isPremium ? `\n\n💜 Tienes ${FREE_MESSAGE_LIMIT} mensajes gratuitos. ¡Aprovéchalos!` : `\n\n✨ Tienes ${ACCESS_DURATION_MS / 3600000}h de acceso premium.`}`,
     };
     setMessages([welcome]);
   }, []);
@@ -39,6 +72,11 @@ export default function ChatPage({ character, isPremium, onNavigate }) {
     e?.preventDefault();
     const text = input.trim();
     if (!text || loading) return;
+
+    if (isPremium && !checkAccess()) {
+      setAccessExpired(true);
+      return;
+    }
 
     if (!isPremium && msgCount >= FREE_MESSAGE_LIMIT) {
       setShowPaywall(true);
@@ -56,10 +94,13 @@ export default function ChatPage({ character, isPremium, onNavigate }) {
       .map(m => ({ role: m.role, content: m.content }));
 
     try {
-      const res = await axios.post(`${API_BASE}/chat`, {
+      const payload = {
         character_id: char.id,
         messages: conversationHistory,
-      });
+      };
+      if (accessToken) payload.access_token = accessToken;
+
+      const res = await axios.post(`${API_BASE}/chat`, payload);
       const aiMsg = {
         id: Date.now() + 1,
         role: 'assistant',
@@ -71,6 +112,13 @@ export default function ChatPage({ character, isPremium, onNavigate }) {
         setTimeout(() => setShowPaywall(true), 1500);
       }
     } catch (err) {
+      if (err.response?.status === 403) {
+        const detail = err.response?.data?.detail;
+        if (detail?.code === 'ACCESS_EXPIRED') {
+          setAccessExpired(true);
+          return;
+        }
+      }
       setMessages(prev => [
         ...prev,
         {
@@ -92,12 +140,14 @@ export default function ChatPage({ character, isPremium, onNavigate }) {
     }
   };
 
+  const isInputBlocked = (!isPremium && msgCount >= FREE_MESSAGE_LIMIT) || (isPremium && accessExpired);
+
   return (
     <div className="chat-page">
       <div className="chat-header" style={{ borderBottomColor: char.color + '30' }}>
         <button className="chat-back" onClick={() => onNavigate('select')}>←</button>
         <div className="chat-char-info">
-          <div className="chat-avatar" style={{ background: char.gradient }}>{char.avatar}</div>
+          <div className="chat-avatar" style={{ background: char.gradient || 'linear-gradient(135deg, #7C3AED, #EC4899)' }}>{char.avatar}</div>
           <div>
             <div className="chat-char-name" style={{ color: char.color }}>{char.name}</div>
             <div className="chat-status">
@@ -111,20 +161,27 @@ export default function ChatPage({ character, isPremium, onNavigate }) {
             Premium
           </button>
         )}
-        {isPremium && <div className="premium-badge">✨ Premium</div>}
+        {isPremium && !accessExpired && timeLeft && (
+          <div className="access-timer" title="Tiempo restante de acceso">
+            ⏱ {timeLeft}
+          </div>
+        )}
+        {isPremium && accessExpired && (
+          <div className="access-expired-badge">⚠️ Expirado</div>
+        )}
       </div>
 
       <div className="chat-messages">
         {messages.map((msg) => (
           <div key={msg.id} className={`message ${msg.role === 'user' ? 'message-user' : 'message-ai'}`}>
             {msg.role === 'assistant' && (
-              <div className="message-avatar" style={{ background: char.gradient }}>
+              <div className="message-avatar" style={{ background: char.gradient || 'linear-gradient(135deg, #7C3AED, #EC4899)' }}>
                 {char.avatar}
               </div>
             )}
             <div
               className="message-bubble"
-              style={msg.role === 'user' ? { background: char.gradient } : undefined}
+              style={msg.role === 'user' ? { background: char.gradient || 'linear-gradient(135deg, #7C3AED, #EC4899)' } : undefined}
             >
               {msg.content.split('\n').map((line, i) => (
                 <React.Fragment key={i}>
@@ -137,7 +194,7 @@ export default function ChatPage({ character, isPremium, onNavigate }) {
         ))}
         {loading && (
           <div className="message message-ai">
-            <div className="message-avatar" style={{ background: char.gradient }}>
+            <div className="message-avatar" style={{ background: char.gradient || 'linear-gradient(135deg, #7C3AED, #EC4899)' }}>
               {char.avatar}
             </div>
             <div className="message-bubble message-typing">
@@ -150,26 +207,51 @@ export default function ChatPage({ character, isPremium, onNavigate }) {
         <div ref={messagesEndRef} />
       </div>
 
-      {showPaywall && (
+      {accessExpired && (
         <div className="paywall-overlay">
           <div className="paywall-card">
-            <div className="paywall-avatar" style={{ background: char.gradient }}>
+            <div className="paywall-avatar" style={{ background: char.gradient || 'linear-gradient(135deg, #7C3AED, #EC4899)' }}>
+              ⏰
+            </div>
+            <h3 className="paywall-title">Acceso expirado</h3>
+            <p className="paywall-desc">
+              Tus <strong>12 horas</strong> de acceso han terminado. Realiza un nuevo pago para continuar chateando con {char.name}.
+            </p>
+            <div className="paywall-price">
+              <span>S/ 2.00</span>
+              <span className="price-month"> · 12h acceso</span>
+            </div>
+            <button
+              className="paywall-btn"
+              style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)' }}
+              onClick={() => onAccessExpired ? onAccessExpired() : onNavigate('payment', { character: char })}
+            >
+              Renovar acceso — Pagar con Yape
+            </button>
+          </div>
+        </div>
+      )}
+
+      {showPaywall && !accessExpired && (
+        <div className="paywall-overlay">
+          <div className="paywall-card">
+            <div className="paywall-avatar" style={{ background: char.gradient || 'linear-gradient(135deg, #7C3AED, #EC4899)' }}>
               {char.avatar}
             </div>
             <h3 className="paywall-title">Continúa con {char.name} 💜</h3>
             <p className="paywall-desc">
-              Has usado tus {FREE_MESSAGE_LIMIT} mensajes gratuitos. Obtén acceso premium para chatear sin límites.
+              Has usado tus {FREE_MESSAGE_LIMIT} mensajes gratuitos. Obtén acceso premium por 12 horas.
             </p>
             <div className="paywall-price">
-              <span>S/ {char.price?.toFixed(2) || '29.90'}</span>
-              <span className="price-month">/mes</span>
+              <span>S/ 2.00</span>
+              <span className="price-month"> · 12h acceso</span>
             </div>
             <button
               className="paywall-btn"
-              style={{ background: char.gradient }}
+              style={{ background: 'linear-gradient(135deg, #7C3AED, #EC4899)' }}
               onClick={() => onNavigate('payment', { character: char })}
             >
-              Obtener Premium → Pagar con Yape
+              Obtener acceso → Pagar con Yape
             </button>
             <button className="paywall-dismiss" onClick={() => setShowPaywall(false)}>
               Continuar con límite
@@ -188,18 +270,18 @@ export default function ChatPage({ character, isPremium, onNavigate }) {
           <textarea
             ref={inputRef}
             className="chat-input"
-            placeholder={`Escribe a ${char.name}...`}
+            placeholder={isInputBlocked ? 'Obtén acceso para continuar...' : `Escribe a ${char.name}...`}
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
             rows={1}
-            disabled={loading}
+            disabled={loading || isInputBlocked}
           />
           <button
             type="submit"
             className="send-btn"
-            disabled={!input.trim() || loading}
-            style={{ background: input.trim() ? char.gradient : undefined }}
+            disabled={!input.trim() || loading || isInputBlocked}
+            style={{ background: input.trim() && !isInputBlocked ? (char.gradient || 'linear-gradient(135deg, #7C3AED, #EC4899)') : undefined }}
           >
             ↑
           </button>

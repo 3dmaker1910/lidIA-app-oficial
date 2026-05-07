@@ -8,13 +8,14 @@ services:
     envVars:
       - key: GROQ_API_KEY
         sync: false
+      - key: ACCESS_SECRET
+        generateValue: true
       - key: PYTHON_VERSION
         value: 3.11.0
 
   # Frontend Static Site
-  - type: web
+  - type: static
     name: lidia-frontend
-    runtime: static
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: ./frontend/build
     envVars:
