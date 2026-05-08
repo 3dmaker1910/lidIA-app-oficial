@@ -16,6 +16,41 @@ function formatTimeLeft(paidAt) {
   return `${hours}h ${minutes}m`;
 }
 
+function CharAvatar({ char, size = 40, style = {} }) {
+  const [imgError, setImgError] = useState(false);
+  if (char.photo && !imgError) {
+    return (
+      <img
+        src={char.photo}
+        alt={char.name}
+        style={{
+          width: size,
+          height: size,
+          borderRadius: '50%',
+          objectFit: 'cover',
+          objectPosition: 'top center',
+          flexShrink: 0,
+          ...style,
+        }}
+        onError={() => setImgError(true)}
+      />
+    );
+  }
+  return (
+    <div
+      className="message-avatar"
+      style={{
+        background: char.gradient || 'linear-gradient(135deg, #7C3AED, #EC4899)',
+        width: size,
+        height: size,
+        ...style,
+      }}
+    >
+      {char.avatar}
+    </div>
+  );
+}
+
 export default function ChatPage({ character, isPremium, accessToken, paidAt, accessExpiresAt, onNavigate, onAccessExpired }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -31,6 +66,7 @@ export default function ChatPage({ character, isPremium, accessToken, paidAt, ac
     id: 'lidia',
     name: 'lidIA',
     avatar: '💜',
+    photo: 'https://customer-assets.emergentagent.com/wingman/b09505ba-190e-4ca7-9d47-23f73249f18b/attachments/aab9c1dcf46c4119b7ddb9cb3e2cb27c_lidia.png',
     color: '#8B5CF6',
     gradient: 'linear-gradient(135deg, #7C3AED, #EC4899)',
   };
@@ -147,7 +183,7 @@ export default function ChatPage({ character, isPremium, accessToken, paidAt, ac
       <div className="chat-header" style={{ borderBottomColor: char.color + '30' }}>
         <button className="chat-back" onClick={() => onNavigate('select')}>←</button>
         <div className="chat-char-info">
-          <div className="chat-avatar" style={{ background: char.gradient || 'linear-gradient(135deg, #7C3AED, #EC4899)' }}>{char.avatar}</div>
+          <CharAvatar char={char} size={40} style={{ border: `2px solid ${char.color}60` }} />
           <div>
             <div className="chat-char-name" style={{ color: char.color }}>{char.name}</div>
             <div className="chat-status">
@@ -175,9 +211,7 @@ export default function ChatPage({ character, isPremium, accessToken, paidAt, ac
         {messages.map((msg) => (
           <div key={msg.id} className={`message ${msg.role === 'user' ? 'message-user' : 'message-ai'}`}>
             {msg.role === 'assistant' && (
-              <div className="message-avatar" style={{ background: char.gradient || 'linear-gradient(135deg, #7C3AED, #EC4899)' }}>
-                {char.avatar}
-              </div>
+              <CharAvatar char={char} size={36} />
             )}
             <div
               className="message-bubble"
@@ -194,9 +228,7 @@ export default function ChatPage({ character, isPremium, accessToken, paidAt, ac
         ))}
         {loading && (
           <div className="message message-ai">
-            <div className="message-avatar" style={{ background: char.gradient || 'linear-gradient(135deg, #7C3AED, #EC4899)' }}>
-              {char.avatar}
-            </div>
+            <CharAvatar char={char} size={36} />
             <div className="message-bubble message-typing">
               <span className="typing-dot" />
               <span className="typing-dot" />
@@ -235,9 +267,15 @@ export default function ChatPage({ character, isPremium, accessToken, paidAt, ac
       {showPaywall && !accessExpired && (
         <div className="paywall-overlay">
           <div className="paywall-card">
-            <div className="paywall-avatar" style={{ background: char.gradient || 'linear-gradient(135deg, #7C3AED, #EC4899)' }}>
-              {char.avatar}
-            </div>
+            <CharAvatar
+              char={char}
+              size={80}
+              style={{
+                margin: '0 auto 16px',
+                border: `3px solid ${char.color}60`,
+                display: 'block',
+              }}
+            />
             <h3 className="paywall-title">Continúa con {char.name} 💜</h3>
             <p className="paywall-desc">
               Has usado tus {FREE_MESSAGE_LIMIT} mensajes gratuitos. Obtén acceso premium por 12 horas.

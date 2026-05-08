@@ -1,45 +1,52 @@
 import React, { useState, useRef } from 'react';
 import './CharacterSelect.css';
 
-const CHAR_IMAGES = {
-  lidia: 'https://customer-assets.emergentagent.com/wingman/b09505ba-190e-4ca7-9d47-23f73249f18b/attachments/fbc203950cd949e1816dc0c1779db5cc_halcon.jpg',
-  vivian: 'https://customer-assets.emergentagent.com/wingman/b09505ba-190e-4ca7-9d47-23f73249f18b/attachments/8646db67e79a4516858c9d73a2e293b4_lobo.jpg',
-  mia: 'https://customer-assets.emergentagent.com/wingman/b09505ba-190e-4ca7-9d47-23f73249f18b/attachments/56ea4c298f1f4ccaa96ad61cead7d4dc_leopardo.jpg',
-};
+const PHOTO_LIDIA = 'https://customer-assets.emergentagent.com/wingman/b09505ba-190e-4ca7-9d47-23f73249f18b/attachments/aab9c1dcf46c4119b7ddb9cb3e2cb27c_lidia.png';
+const PHOTO_VIVIAN = 'https://customer-assets.emergentagent.com/wingman/b09505ba-190e-4ca7-9d47-23f73249f18b/attachments/87db63e37c6746298803b64e39d2905c_vivian.png';
+const PHOTO_MIA = 'https://customer-assets.emergentagent.com/wingman/b09505ba-190e-4ca7-9d47-23f73249f18b/attachments/d2a6fa15868b49efabfdd6e8675d8f18_mia.png';
 
 const characters = [
   {
     id: 'lidia',
     name: 'lidIA',
-    tagline: 'Arquetipo Inteligente',
+    tagline: 'Tu compañera inteligente',
     description: 'Sofisticada, empática y brillante. Siempre lista para ayudarte con cualquier cosa que necesites.',
+    avatar: '💜',
+    photo: PHOTO_LIDIA,
     color: '#8B5CF6',
     gradient: 'linear-gradient(135deg, #7C3AED, #EC4899)',
     price: 2.00,
     badge: '⭐ POPULAR',
     features: ['Chat ilimitado', 'Respuestas premium', 'Memoria contextual', 'Modo nocturno'],
+    personality: 'Inteligente · Culta',
   },
   {
     id: 'vivian',
     name: 'Vivian',
-    tagline: 'Arquetipo Fitness',
+    tagline: 'Experta en bienestar',
     description: 'Tu coach personal de fitness, nutrición y lifestyle. Energética, motivadora y siempre positiva.',
+    avatar: '🌸',
+    photo: PHOTO_VIVIAN,
     color: '#EC4899',
     gradient: 'linear-gradient(135deg, #EC4899, #F97316)',
     price: 2.00,
     badge: null,
     features: ['Planes de nutrición', 'Rutinas fitness', 'Consejos de bienestar', 'Motivación diaria'],
+    personality: 'Fitness · Enérgica',
   },
   {
     id: 'mia',
     name: 'Mia',
-    tagline: 'Arquetipo Dulce',
+    tagline: 'Tu mentora creativa',
     description: 'Arte, diseño, escritura y música. Imaginativa y apasionada, descubre tu potencial creativo con ella.',
+    avatar: '🎨',
+    photo: PHOTO_MIA,
     color: '#F59E0B',
     gradient: 'linear-gradient(135deg, #F59E0B, #EF4444)',
     price: 2.00,
     badge: '🆕 NUEVA',
     features: ['Guía artística', 'Proyectos creativos', 'Feedback personalizado', 'Inspiración diaria'],
+    personality: 'Dulce · Romántica',
   },
 ];
 
@@ -93,11 +100,18 @@ export default function CharacterSelect({ onNavigate }) {
               )}
               <div className="char-avatar-ring" style={{ background: char.gradient }}>
                 <img
-                  src={CHAR_IMAGES[char.id]}
+                  src={char.photo}
                   alt={char.name}
                   className="char-photo"
-                  onError={e => { e.target.style.display = 'none'; }}
+                  onError={e => {
+                    e.target.style.display = 'none';
+                    e.target.parentNode.querySelector('.char-avatar-fallback').style.display = 'flex';
+                  }}
                 />
+                <div className="char-avatar-fallback" style={{ display: 'none' }}>{char.avatar}</div>
+              </div>
+              <div className="char-personality-tag" style={{ color: char.color, borderColor: char.color + '40' }}>
+                {char.personality}
               </div>
               <h2 className="char-name" style={{ color: char.color }}>{char.name}</h2>
               <p className="char-tagline">{char.tagline}</p>
@@ -113,7 +127,7 @@ export default function CharacterSelect({ onNavigate }) {
               <div className="char-price">
                 <span className="price-currency">S/</span>
                 <span className="price-amount">{char.price.toFixed(2)}</span>
-                <span className="price-period"> · 12h</span>
+                <span className="price-period"> · 12h acceso</span>
               </div>
             </div>
           ))}

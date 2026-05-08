@@ -8,6 +8,21 @@ const ACCESS_DURATION_HOURS = 12;
 const YAPE_QR_URL =
   'https://customer-assets.emergentagent.com/wingman/b09505ba-190e-4ca7-9d47-23f73249f18b/attachments/79843c85932d47c69d4a1668707b1b44_yape%20986083251%20%281%29.jpg';
 
+function CharAvatarSm({ character }) {
+  const [imgError, setImgError] = useState(false);
+  if (character.photo && !imgError) {
+    return (
+      <img
+        src={character.photo}
+        alt={character.name}
+        className="char-photo-sm"
+        onError={() => setImgError(true)}
+      />
+    );
+  }
+  return <div className="char-avatar-sm">{character.avatar}</div>;
+}
+
 export default function PaymentPage({ character, onNavigate }) {
   const [step, setStep] = useState('form');
   const [form, setForm] = useState({ name: '', phone: '' });
@@ -106,7 +121,7 @@ export default function PaymentPage({ character, onNavigate }) {
 
       <div className="payment-content">
         <div className="payment-char" style={{ borderColor: character.color + '60' }}>
-          <div className="char-avatar-sm">{character.avatar}</div>
+          <CharAvatarSm character={character} />
           <div>
             <div className="char-name-sm" style={{ color: character.color }}>{character.name}</div>
             <div className="char-price-sm">S/ {PAYMENT_AMOUNT.toFixed(2)} · {ACCESS_DURATION_HOURS}h acceso</div>
