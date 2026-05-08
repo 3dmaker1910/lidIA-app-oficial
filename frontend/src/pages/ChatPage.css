@@ -378,3 +378,15 @@
   border-radius: 20px;
   padding: 6px 10px;
 }
+
+.paywall-yape-num {
+  font-size: 14px;
+  color: #A78BFA;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.paywall-yape-num strong {
+  color: #EDE9FE;
+  font-size: 16px;
+}
