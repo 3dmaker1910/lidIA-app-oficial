@@ -8,6 +8,10 @@ const ACCESS_DURATION_MS = 12 * 60 * 60 * 1000;
 
 const YAPE_NUMBER = '986083251';
 
+function makeId() {
+  return Date.now() + Math.random();
+}
+
 function formatTimeLeft(paidAt) {
   if (!paidAt) return null;
   const elapsed = Date.now() - paidAt;
@@ -28,7 +32,6 @@ export default function ChatPage({ character, isPremium, accessToken, paidAt, ac
   const [timeLeft, setTimeLeft] = useState(null);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
-  // Keep a ref that always holds the latest messages array to avoid stale closures
   const messagesRef = useRef([]);
 
   const char = character || {
@@ -57,12 +60,12 @@ export default function ChatPage({ character, isPremium, accessToken, paidAt, ac
     return () => clearInterval(timer);
   }, [isPremium, paidAt, checkAccess]);
 
-  // Initialize welcome message once on mount
   useEffect(() => {
+    const charDesc = char.description || 'Estoy aquí para ayudarte. ¿De qué quieres hablar hoy?';
     const welcome = {
-      id: Date.now(),
+      id: makeId(),
       role: 'assistant',
-      content: `¡Hola! Soy ${char.name} ${char.avatar || ''}\n\n${char.description || 'Estoy aquí para ayudarte. ¿De qué quieres hablar hoy?'}${!isPremium ? `\n\n💜 Tienes ${FREE_MESSAGE_LIMIT} mensajes gratuitos. ¡Aprovéchalos!` : `\n\n✨ Tienes ${ACCESS_DURATION_MS / 3600000}h de acceso premium.`}`,
+      content: `¡Hola! Soy ${char.name} ${char.avatar || ''}\n\n${charDesc}${!isPremium ? `\n\n💜 Tienes ${FREE_MESSAGE_LIMIT} mensajes gratuitos. ¡Aprovéchalos!` : `\n\n✨ Tienes ${ACCESS_DURATION_MS / 3600000}h de acceso premium.`}`,
     };
     const initial = [welcome];
     messagesRef.current = initial;
@@ -89,8 +92,7 @@ export default function ChatPage({ character, isPremium, accessToken, paidAt, ac
       return;
     }
 
-    const userMsg = { id: Date.now(), role: 'user', content: text };
-    // Use the ref to get the freshest snapshot — prevents stale-closure blank screen
+    const userMsg = { id: makeId(), role: 'user', content: text };
     const updatedMessages = [...messagesRef.current, userMsg];
     messagesRef.current = updatedMessages;
     setMessages(updatedMessages);
@@ -99,17 +101,25 @@ export default function ChatPage({ character, isPremium, accessToken, paidAt, ac
 
     const conversationHistory = updatedMessages
       .filter(m => m.role !== 'system')
-      .map(m => ({ role: m.role, content: m.content }));
+      .map(m => ({ role: m.role, content: m.content || '' }));
 
     const payload = { character_id: char.id, messages: conversationHistory };
     if (accessToken) payload.access_token = accessToken;
 
     try {
       const res = await axios.post(`${API_BASE}/chat`, payload);
+
+      let responseText = '';
+      try {
+        responseText = (res.data && res.data.response) ? String(res.data.response) : 'Lo siento, no pude procesar la respuesta. 💜';
+      } catch {
+        responseText = 'Lo siento, hubo un problema con la respuesta. 💜';
+      }
+
       const aiMsg = {
-        id: Date.now() + 1,
+        id: makeId(),
         role: 'assistant',
-        content: res.data.response,
+        content: responseText,
       };
       const withAi = [...messagesRef.current, aiMsg];
       messagesRef.current = withAi;
@@ -129,7 +139,7 @@ export default function ChatPage({ character, isPremium, accessToken, paidAt, ac
         return;
       }
       const errMsg = {
-        id: Date.now() + 1,
+        id: makeId(),
         role: 'assistant',
         content: 'Lo siento, tuve un problema conectándome. Por favor intenta nuevamente. 💜',
       };
@@ -192,7 +202,7 @@ export default function ChatPage({ character, isPremium, accessToken, paidAt, ac
               className="message-bubble"
               style={msg.role === 'user' ? { background: char.gradient || 'linear-gradient(135deg, #7C3AED, #EC4899)' } : undefined}
             >
-              {msg.content.split('\n').map((line, i, arr) => (
+              {(msg.content || '').split('\n').map((line, i, arr) => (
                 <React.Fragment key={i}>
                   {line}
                   {i < arr.length - 1 && <br />}

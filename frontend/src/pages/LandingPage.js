@@ -2,9 +2,9 @@ import React, { useEffect, useState } from 'react';
 import './LandingPage.css';
 
 const CHAR_IMAGES = {
-  lidia: 'https://customer-assets.emergentagent.com/wingman/b09505ba-190e-4ca7-9d47-23f73249f18b/attachments/fbc203950cd949e1816dc0c1779db5cc_halcon.jpg',
-  vivian: 'https://customer-assets.emergentagent.com/wingman/b09505ba-190e-4ca7-9d47-23f73249f18b/attachments/8646db67e79a4516858c9d73a2e293b4_lobo.jpg',
-  mia: 'https://customer-assets.emergentagent.com/wingman/b09505ba-190e-4ca7-9d47-23f73249f18b/attachments/56ea4c298f1f4ccaa96ad61cead7d4dc_leopardo.jpg',
+  lidia: 'https://customer-assets.emergentagent.com/wingman/b09505ba-190e-4ca7-9d47-23f73249f18b/attachments/aab9c1dcf46c4119b7ddb9cb3e2cb27c_lidia.png',
+  vivian: 'https://customer-assets.emergentagent.com/wingman/b09505ba-190e-4ca7-9d47-23f73249f18b/attachments/87db63e37c6746298803b64e39d2905c_vivian.png',
+  mia: 'https://customer-assets.emergentagent.com/wingman/b09505ba-190e-4ca7-9d47-23f73249f18b/attachments/d2a6fa15868b49efabfdd6e8675d8f18_mia.png',
 };
 
 const characters = [
