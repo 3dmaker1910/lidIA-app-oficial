@@ -5,23 +5,9 @@ import './PaymentPage.css';
 const API_BASE = process.env.REACT_APP_API_URL || '';
 const PAYMENT_AMOUNT = 2.00;
 const ACCESS_DURATION_HOURS = 12;
+const YAPE_NUMBER = '986083251';
 const YAPE_QR_URL =
   'https://customer-assets.emergentagent.com/wingman/b09505ba-190e-4ca7-9d47-23f73249f18b/attachments/79843c85932d47c69d4a1668707b1b44_yape%20986083251%20%281%29.jpg';
-
-function CharAvatarSm({ character }) {
-  const [imgError, setImgError] = useState(false);
-  if (character.photo && !imgError) {
-    return (
-      <img
-        src={character.photo}
-        alt={character.name}
-        className="char-photo-sm"
-        onError={() => setImgError(true)}
-      />
-    );
-  }
-  return <div className="char-avatar-sm">{character.avatar}</div>;
-}
 
 export default function PaymentPage({ character, onNavigate }) {
   const [step, setStep] = useState('form');
@@ -111,6 +97,9 @@ export default function PaymentPage({ character, onNavigate }) {
     });
   };
 
+  // Always use the hardcoded number as the displayed Yape number
+  const displayYapeNumber = (paymentData && paymentData.yape_number) || YAPE_NUMBER;
+
   return (
     <div className="payment-page">
       <div className="payment-header">
@@ -121,7 +110,7 @@ export default function PaymentPage({ character, onNavigate }) {
 
       <div className="payment-content">
         <div className="payment-char" style={{ borderColor: character.color + '60' }}>
-          <CharAvatarSm character={character} />
+          <div className="char-avatar-sm">{character.avatar}</div>
           <div>
             <div className="char-name-sm" style={{ color: character.color }}>{character.name}</div>
             <div className="char-price-sm">S/ {PAYMENT_AMOUNT.toFixed(2)} · {ACCESS_DURATION_HOURS}h acceso</div>
@@ -153,6 +142,9 @@ export default function PaymentPage({ character, onNavigate }) {
                 autoComplete="tel"
               />
             </div>
+            <div className="yape-preview-hint">
+              📱 Yapea al número <strong>{YAPE_NUMBER}</strong> — S/ {PAYMENT_AMOUNT.toFixed(2)}
+            </div>
             {error && <div className="error-msg">{error}</div>}
             <button
               type="submit"
@@ -181,7 +173,7 @@ export default function PaymentPage({ character, onNavigate }) {
               <p className="yape-qr-label">Escanea el QR con tu app Yape</p>
               <img
                 src={YAPE_QR_URL}
-                alt="QR Yape 986083251"
+                alt={`QR Yape ${YAPE_NUMBER}`}
                 className="yape-qr-image"
                 onError={e => { e.target.style.display = 'none'; }}
               />
@@ -190,8 +182,8 @@ export default function PaymentPage({ character, onNavigate }) {
 
             <div className="yape-number-card">
               <div className="yape-number-label">Número Yape:</div>
-              <div className="yape-number">{paymentData.yape_number}</div>
-              <button className="btn-copy" onClick={() => copyToClipboard(paymentData.yape_number, 'phone')}>
+              <div className="yape-number">{displayYapeNumber}</div>
+              <button className="btn-copy" onClick={() => copyToClipboard(displayYapeNumber, 'phone')}>
                 {copied === 'phone' ? '✅ Copiado' : '📋 Copiar número'}
               </button>
             </div>
