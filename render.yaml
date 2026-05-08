@@ -1,33 +1,24 @@
 services:
-  # ── Backend ──────────────────────────────────────────────────────────────
+  # SERVIDOR (EL CEREBRO)
   - type: web
-    name: lidia-api
-    runtime: python
-    region: oregon
-    plan: free
+    name: lidIA-backend
+    env: python
     buildCommand: pip install -r requirements.txt
     startCommand: cd backend && uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.14
       - key: GROQ_API_KEY
-        sync: false
-      - key: ACCESS_SECRET
-        generateValue: true
+        fromLink:
+          type: variable
+          name: GROQ_API_KEY
 
-  # ── Frontend ─────────────────────────────────────────────────────────────
+  # LA APP (LA CARA)
   - type: static
-    name: lidia-frontend
-    region: oregon
-    plan: free
+    name: lidIA-app-premium
+    env: static
     buildCommand: cd frontend && npm install && npm run build
     staticPublishPath: frontend/dist
-    headers:
-      - path: /*
-        name: Cache-Control
-        value: no-cache
-    routes:
-      - type: rewrite
-        source: /*
-        destination: /index.html
     envVars:
       - key: REACT_APP_API_URL
-        sync: false
+        value: https://lidia-backend.onrender.com
