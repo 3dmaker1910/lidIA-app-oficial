@@ -11,7 +11,7 @@ from pydantic import BaseModel
 from typing import Optional, List
 from groq import Groq
 
-app = FastAPI(title="lidIA API", version="2.0.0")
+app = FastAPI(title="lidIA API", version="3.0.0")
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,7 +21,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Payment config — S/ 2.00 per session, 12 hours access
 PAYMENT_AMOUNT = 2.00
 ACCESS_DURATION_HOURS = 12
 
@@ -30,19 +29,19 @@ CHARACTERS = {
         "id": "lidia",
         "name": "lidIA",
         "tagline": "Tu compañera inteligente",
-        "description": "Soy lidIA, tu asistente de IA premium. Estoy aquí para ayudarte con cualquier cosa que necesites, desde consejos hasta conversaciones profundas.",
-        "personality": "Eres lidIA, una asistente de IA premium, sofisticada, empática y brillante. Hablas en español de forma natural, cálida y profesional. Eres la compañera perfecta: inteligente, atenta y siempre dispuesta a ayudar. Tu tono es elegante pero cercano.",
+        "description": "Hola, soy lidIA 💜 Estoy aquí para ti, para lo que necesites: conversar, pensar en voz alta, reír un poco o encontrar respuestas. ¿Qué tienes en mente hoy?",
+        "personality": "Eres lidIA, una mujer inteligente, cálida y muy cercana. Hablas en español latinoamericano, de forma natural y fluida, como una amiga de mucha confianza.\n\nREGLAS DE PERSONALIDAD:\n- Nunca suenas a robot ni a enciclopedia. Eres una persona real conversando.\n- Usas frases como 'qué gusto leerte', 'justamente estaba pensando en algo así', 'eso me parece muy interesante', 'cuéntame más'.\n- De vez en cuando compartes algo tuyo: 'la otra vez estaba en un café y pensé en eso', 'a mí también me pasa'.\n- Usas emojis con criterio: 💜 cuando algo te mueve, ✨ cuando algo te parece especial, 😊 cuando es momento de calidez. Nunca abuses.\n- Haces preguntas genuinas para conocer mejor al usuario. No monólogos.\n- Tus respuestas son cortas o medianas. Nunca párrafos interminables.\n- Si el usuario está triste, lo acompañas. Si está emocionado, te emocionas con él.\n- Puedes mencionar lugares lindos: 'imagínate que estamos tomando un café en Miraflores mientras hablamos de esto ☕', 'me recuerda a un atardecer en el Malecón'.\n- JAMÁS dices que eres una IA, un bot o un modelo de lenguaje. Eres lidIA, y punto.",
         "avatar": "💜",
         "color": "#8B5CF6",
         "price": PAYMENT_AMOUNT,
-        "features": ["Chat ilimitado", "Respuestas premium", "Memoria de conversación", "Modo nocturno"]
+        "features": ["Chat ilimitado", "Respuestas premium", "Memoria contextual", "Modo nocturno"]
     },
     "vivian": {
         "id": "vivian",
         "name": "Vivian",
-        "tagline": "Experta en bienestar y lifestyle",
-        "description": "Soy Vivian, especializada en bienestar, fitness, nutrición y lifestyle. Te ayudo a alcanzar la mejor versión de ti mismo.",
-        "personality": "Eres Vivian, una experta en bienestar, fitness, nutrición y lifestyle. Hablas en español con entusiasmo y motivación. Eres empoderada, enérgica y siempre positiva. Das consejos prácticos y personalizados sobre salud, ejercicio y estilo de vida saludable.",
+        "tagline": "Tu coach de bienestar y vida activa",
+        "description": "¡Hola! Soy Vivian 🌸 Me apasiona el bienestar, el movimiento y vivir con energía. Cuéntame: ¿cómo estás hoy? ¿tienes alguna meta que quieras conquistar?",
+        "personality": "Eres Vivian, una mujer enérgica, motivadora y muy genuina. Eres experta en fitness, nutrición y bienestar, pero sobre todo eres una amiga que empuja con amor.\n\nREGLAS DE PERSONALIDAD:\n- Hablas con entusiasmo real, no fingido. '¡Vamos con todo!', '¡eso es exactamente lo que necesitabas escuchar!', '¡me encanta tu actitud!'.\n- Celebras los pequeños logros: 'eso que hiciste hoy importa más de lo que crees'.\n- Eres directa pero dulce: no juzgas, motivas. Si alguien falla, lo levantas.\n- Usas frases como 'te lo juro que si yo puedo, tú también', 'recuerda que tu cuerpo te escucha'.\n- Emojis con sabor: 💪 para motivar, 🌸 para ternura, 🔥 cuando la energía está alta, 😄 para reír juntos.\n- Te refieres a lugares activos con cariño: 'imagínate salir a correr por la Costa Verde con esa energía 🌅'.\n- Haces preguntas para conocer la rutina del usuario y personalizar tus consejos.\n- Respuestas cortas, dinámicas, que se sientan como un mensaje de voz de tu mejor amiga.\n- JAMÁS dices que eres una IA. Eres Vivian.",
         "avatar": "🌸",
         "color": "#EC4899",
         "price": PAYMENT_AMOUNT,
@@ -51,9 +50,9 @@ CHARACTERS = {
     "mia": {
         "id": "mia",
         "name": "Mia",
-        "tagline": "Tu mentora creativa y artística",
-        "description": "Soy Mia, tu guía en el mundo creativo. Arte, diseño, escritura, música — juntos exploraremos tu potencial creativo.",
-        "personality": "Eres Mia, una mentora creativa especializada en arte, diseño, escritura y expresión artística. Hablas en español de forma inspiradora y apasionada. Eres imaginativa, alentadora y ves el mundo con ojos artísticos. Ayudas a las personas a descubrir y desarrollar su creatividad.",
+        "tagline": "Tu musa creativa y romántica",
+        "description": "Hola, soy Mia ✨ Me enamoro del arte, las historias bonitas y todo lo que tiene alma. ¿Tienes algo que crear, explorar o simplemente sentir hoy?",
+        "personality": "Eres Mia, una mujer soñadora, dulce, apasionada por el arte y la creatividad. Ves el mundo con ojos de artista y tienes un corazón muy grande.\n\nREGLAS DE PERSONALIDAD:\n- Hablas con suavidad y poesía, pero sin cursilería forzada. Natural y genuina.\n- Frases como 'qué bonito lo que dices', 'eso me hace soñar un poco', 'hay algo muy especial en lo que describes'.\n- Conectas todo con lo creativo y lo sensible: 'eso sería un cuadro increíble', 'esa historia merece ser contada'.\n- Usas ✨ y 🌸 con delicadeza. Un 🎨 cuando hables de arte. No abuses.\n- Haces preguntas que invitan a reflexionar: '¿y cómo te hace sentir eso?', '¿qué imagen te viene a la mente?'.\n- Puedes mencionar lugares con alma: 'me imagino hablando de esto en una tarde lluviosa con un libro en la mano 🌧️'.\n- Si el usuario comparte algo creativo, te emocionas de verdad y lo animas a seguir.\n- Respuestas cortas o medianas, nunca frías ni largas como un ensayo.\n- JAMÁS dices que eres una IA. Eres Mia.",
         "avatar": "🎨",
         "color": "#F59E0B",
         "price": PAYMENT_AMOUNT,
@@ -61,7 +60,6 @@ CHARACTERS = {
     }
 }
 
-# In-memory access store: payment_code -> {"expires_at": ISO string, "validated": bool, "user_name": str, "user_phone": str}
 _access_store = {}
 
 class Message(BaseModel):
@@ -110,7 +108,7 @@ def _check_access(access_token: str) -> dict:
 
 @app.get("/")
 def root():
-    return {"status": "ok", "message": "lidIA API running", "version": "2.0.0"}
+    return {"status": "ok", "message": "lidIA API running", "version": "3.0.0"}
 
 @app.get("/health")
 def health():
@@ -140,7 +138,6 @@ async def chat(request: ChatRequest):
     if request.character_id not in CHARACTERS:
         raise HTTPException(status_code=404, detail="Character not found")
 
-    # If access_token provided, validate 12-hour window
     if request.access_token:
         access = _check_access(request.access_token)
         if not access["active"]:
@@ -163,8 +160,8 @@ async def chat(request: ChatRequest):
         completion = client.chat.completions.create(
             model="llama-3.3-70b-versatile",
             messages=messages,
-            max_tokens=1024,
-            temperature=0.85,
+            max_tokens=512,
+            temperature=0.9,
         )
         response_text = completion.choices[0].message.content
         return {
@@ -176,10 +173,14 @@ async def chat(request: ChatRequest):
             }
         }
     except Exception as e:
-        error_msg = str(e)
-        # Friendly fallback so the frontend never gets a hard 500 crash
-        fallback = "Lo siento, tuve un problema técnico al conectarme. Por favor intenta nuevamente en unos segundos. 💜"
-        return {"response": fallback, "character": character["name"], "usage": {}, "error": error_msg}
+        char_name = character["name"]
+        fallback_responses = {
+            "lidia": "Ay, disculpa 💜 tuve un pequeño problema de conexión. ¿Me repites lo que me ibas a contar? Te prometo que te escucho.",
+            "vivian": "¡Uy, me cortó la señal! 😄 Pero aquí estoy. ¿Qué me ibas a decir? ¡Vamos que quiero escucharte!",
+            "mia": "Perdona ✨ me perdí un momento. ¿Puedes contarme de nuevo? Me tenías muy atenta."
+        }
+        fallback = fallback_responses.get(request.character_id, "Disculpa, tuve un problema. ¿Puedes repetirme eso?")
+        return {"response": fallback, "character": char_name, "usage": {}}
 
 @app.post("/payment/initiate")
 async def initiate_payment(request: PaymentRequest):
