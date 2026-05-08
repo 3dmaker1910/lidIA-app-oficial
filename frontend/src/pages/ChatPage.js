@@ -39,14 +39,21 @@ function formatTimeLeft(startMs, durationMs) {
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
-function speakText(text) {
+const VOICE_SETTINGS = {
+  lidia:  { pitch: 1.0, rate: 0.95 },
+  vivian: { pitch: 1.1, rate: 1.1  },
+  mia:    { pitch: 1.3, rate: 0.85 },
+};
+
+function speakText(text, charId) {
   if (!window.speechSynthesis) return;
   window.speechSynthesis.cancel();
   const clean = (text || '').replace(/[\u{1F300}-\u{1FFFF}]/gu, '');
   const utter = new SpeechSynthesisUtterance(clean);
   utter.lang = 'es-419';
-  utter.pitch = 1.2;
-  utter.rate = 1.0;
+  const settings = VOICE_SETTINGS[charId] || VOICE_SETTINGS.lidia;
+  utter.pitch = settings.pitch;
+  utter.rate = settings.rate;
   const voices = window.speechSynthesis.getVoices();
   const esVoice = voices.find(v => v.lang.startsWith('es') && v.name.toLowerCase().includes('female'))
     || voices.find(v => v.lang.startsWith('es'));
@@ -156,7 +163,7 @@ export default function ChatPage({ character, isPremium, accessToken, paidAt, on
       }
       messagesRef.current = withPhoto;
       setMessages(withPhoto);
-      if (autoRead) speakText(responseText);
+      if (autoRead) speakText(responseText, char.id);
 
       if (!isPremium) {
         const ts = getTrialStart();
@@ -192,12 +199,12 @@ export default function ChatPage({ character, isPremium, accessToken, paidAt, on
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {timeLeft && !accessExpired && <div className="access-timer">⏱ {timeLeft}</div>}
+          {timeLeft && !accessExpired && <div className="access-timer">⏱ timeLeft}</div>}
           <button
             className={`autoread-btn ${autoRead ? 'active' : ''}`}
-            title={autoRead ? 'Desactivar voz' : 'Activar voz'}
+            title={autoRead ? 'Desactivar voz' : 'Activar voz' }
             onClick={() => { setAutoRead(v => !v); if (window.speechSynthesis) window.speechSynthesis.cancel(); }}
-          >{autoRead ? '🔊' : '🔇'}</button>
+          >{autoRead ? '🔊' : '🔇' }</button>
           {!isPremium && (
             <button className="chat-premium-btn" onClick={() => onNavigate('payment', { character: char })}>Premium</button>
           )}
@@ -232,7 +239,7 @@ export default function ChatPage({ character, isPremium, accessToken, paidAt, on
                   ))}
                 </div>
                 {msg.role === 'assistant' && (
-                  <button className="speak-btn" title="Escuchar" onClick={() => speakText(msg.content || '')}>🔉</button>
+                  <button className="speak-btn" title="Escuchar" onClick={() => speakText(msg.content || '', char.id)}>🔉</button>
                 )}
               </div>
             </div>
