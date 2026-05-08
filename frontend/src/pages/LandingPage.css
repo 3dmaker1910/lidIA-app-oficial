@@ -267,3 +267,64 @@
     font-size: 28px;
   }
 }
+
+/* Character photo showcase in hero */
+.hero-chars {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  margin-bottom: 36px;
+  flex-wrap: wrap;
+}
+
+.hero-char-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.hero-char-item:hover {
+  transform: translateY(-4px);
+}
+
+.hero-char-ring {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  padding: 3px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  overflow: hidden;
+}
+
+.hero-char-photo {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  border: 2px solid rgba(15,10,30,0.5);
+}
+
+.hero-char-name {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.hero-char-tagline {
+  font-size: 10px;
+  color: #7C6A9A;
+  text-align: center;
+}
+
+@media (max-width: 400px) {
+  .hero-char-ring {
+    width: 64px;
+    height: 64px;
+  }
+  .hero-chars {
+    gap: 14px;
+  }
+}
