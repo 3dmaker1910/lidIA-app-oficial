@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import './ChatPage.css';
 
-const API_BASE = process.env.REACT_APP_API_URL || '';
+const API_BASE = process.env.REACT_APP_API_URL || 'https://lidia-app-oficial.onrender.com';
 const FREE_MESSAGE_LIMIT = 3;
 const ACCESS_DURATION_MS = 12 * 60 * 60 * 1000;
 
@@ -61,11 +61,10 @@ export default function ChatPage({ character, isPremium, accessToken, paidAt, ac
   }, [isPremium, paidAt, checkAccess]);
 
   useEffect(() => {
-    const charDesc = char.description || 'Estoy aquí para ayudarte. ¿De qué quieres hablar hoy?';
     const welcome = {
       id: makeId(),
       role: 'assistant',
-      content: `¡Hola! Soy ${char.name} ${char.avatar || ''}\n\n${charDesc}${!isPremium ? `\n\n💜 Tienes ${FREE_MESSAGE_LIMIT} mensajes gratuitos. ¡Aprovéchalos!` : `\n\n✨ Tienes ${ACCESS_DURATION_MS / 3600000}h de acceso premium.`}`,
+      content: `¡Hola! Soy ${char.name} ${char.avatar || ''}\n\n${char.description || 'Estoy aquí para ayudarte. ¿De qué quieres hablar hoy?'}${!isPremium ? `\n\n💜 Tienes ${FREE_MESSAGE_LIMIT} mensajes gratuitos. ¡Aprovéchalos!` : `\n\n✨ Tienes ${ACCESS_DURATION_MS / 3600000}h de acceso premium.`}`,
     };
     const initial = [welcome];
     messagesRef.current = initial;
@@ -101,25 +100,17 @@ export default function ChatPage({ character, isPremium, accessToken, paidAt, ac
 
     const conversationHistory = updatedMessages
       .filter(m => m.role !== 'system')
-      .map(m => ({ role: m.role, content: m.content || '' }));
+      .map(m => ({ role: m.role, content: m.content }));
 
     const payload = { character_id: char.id, messages: conversationHistory };
     if (accessToken) payload.access_token = accessToken;
 
     try {
       const res = await axios.post(`${API_BASE}/chat`, payload);
-
-      let responseText = '';
-      try {
-        responseText = (res.data && res.data.response) ? String(res.data.response) : 'Lo siento, no pude procesar la respuesta. 💜';
-      } catch {
-        responseText = 'Lo siento, hubo un problema con la respuesta. 💜';
-      }
-
       const aiMsg = {
         id: makeId(),
         role: 'assistant',
-        content: responseText,
+        content: (res.data && res.data.response) ? res.data.response : 'No pude obtener respuesta. Intenta nuevamente. 💜',
       };
       const withAi = [...messagesRef.current, aiMsg];
       messagesRef.current = withAi;

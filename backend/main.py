@@ -62,7 +62,6 @@ CHARACTERS = {
 }
 
 # In-memory access store: payment_code -> {"expires_at": ISO string, "validated": bool, "user_name": str, "user_phone": str}
-# In production replace with a database (Redis, PostgreSQL, etc.)
 _access_store = {}
 
 class Message(BaseModel):
@@ -162,7 +161,7 @@ async def chat(request: ChatRequest):
         messages.append({"role": msg.role, "content": msg.content})
     try:
         completion = client.chat.completions.create(
-            model="llama3-70b-8192",
+            model="llama-3.3-70b-versatile",
             messages=messages,
             max_tokens=1024,
             temperature=0.85,
@@ -177,7 +176,10 @@ async def chat(request: ChatRequest):
             }
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"AI error: {str(e)}")
+        error_msg = str(e)
+        # Friendly fallback so the frontend never gets a hard 500 crash
+        fallback = "Lo siento, tuve un problema técnico al conectarme. Por favor intenta nuevamente en unos segundos. 💜"
+        return {"response": fallback, "character": character["name"], "usage": {}, "error": error_msg}
 
 @app.post("/payment/initiate")
 async def initiate_payment(request: PaymentRequest):
