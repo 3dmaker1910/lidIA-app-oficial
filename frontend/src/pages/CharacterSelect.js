@@ -1,40 +1,43 @@
 import React, { useState, useRef } from 'react';
 import './CharacterSelect.css';
 
+const CHAR_IMAGES = {
+  lidia: 'https://customer-assets.emergentagent.com/wingman/b09505ba-190e-4ca7-9d47-23f73249f18b/attachments/fbc203950cd949e1816dc0c1779db5cc_halcon.jpg',
+  vivian: 'https://customer-assets.emergentagent.com/wingman/b09505ba-190e-4ca7-9d47-23f73249f18b/attachments/8646db67e79a4516858c9d73a2e293b4_lobo.jpg',
+  mia: 'https://customer-assets.emergentagent.com/wingman/b09505ba-190e-4ca7-9d47-23f73249f18b/attachments/56ea4c298f1f4ccaa96ad61cead7d4dc_leopardo.jpg',
+};
+
 const characters = [
   {
     id: 'lidia',
     name: 'lidIA',
-    tagline: 'Tu compañera inteligente',
+    tagline: 'Arquetipo Inteligente',
     description: 'Sofisticada, empática y brillante. Siempre lista para ayudarte con cualquier cosa que necesites.',
-    avatar: '💜',
     color: '#8B5CF6',
     gradient: 'linear-gradient(135deg, #7C3AED, #EC4899)',
-    price: 29.90,
+    price: 2.00,
     badge: '⭐ POPULAR',
     features: ['Chat ilimitado', 'Respuestas premium', 'Memoria contextual', 'Modo nocturno'],
   },
   {
     id: 'vivian',
     name: 'Vivian',
-    tagline: 'Experta en bienestar',
+    tagline: 'Arquetipo Fitness',
     description: 'Tu coach personal de fitness, nutrición y lifestyle. Energética, motivadora y siempre positiva.',
-    avatar: '🌸',
     color: '#EC4899',
     gradient: 'linear-gradient(135deg, #EC4899, #F97316)',
-    price: 24.90,
+    price: 2.00,
     badge: null,
     features: ['Planes de nutrición', 'Rutinas fitness', 'Consejos de bienestar', 'Motivación diaria'],
   },
   {
     id: 'mia',
     name: 'Mia',
-    tagline: 'Tu mentora creativa',
+    tagline: 'Arquetipo Dulce',
     description: 'Arte, diseño, escritura y música. Imaginativa y apasionada, descubre tu potencial creativo con ella.',
-    avatar: '🎨',
     color: '#F59E0B',
     gradient: 'linear-gradient(135deg, #F59E0B, #EF4444)',
-    price: 24.90,
+    price: 2.00,
     badge: '🆕 NUEVA',
     features: ['Guía artística', 'Proyectos creativos', 'Feedback personalizado', 'Inspiración diaria'],
   },
@@ -89,7 +92,12 @@ export default function CharacterSelect({ onNavigate }) {
                 <div className="char-badge" style={{ background: char.color }}>{char.badge}</div>
               )}
               <div className="char-avatar-ring" style={{ background: char.gradient }}>
-                <div className="char-avatar">{char.avatar}</div>
+                <img
+                  src={CHAR_IMAGES[char.id]}
+                  alt={char.name}
+                  className="char-photo"
+                  onError={e => { e.target.style.display = 'none'; }}
+                />
               </div>
               <h2 className="char-name" style={{ color: char.color }}>{char.name}</h2>
               <p className="char-tagline">{char.tagline}</p>
@@ -105,7 +113,7 @@ export default function CharacterSelect({ onNavigate }) {
               <div className="char-price">
                 <span className="price-currency">S/</span>
                 <span className="price-amount">{char.price.toFixed(2)}</span>
-                <span className="price-period">/mes</span>
+                <span className="price-period"> · 12h</span>
               </div>
             </div>
           ))}
@@ -135,7 +143,7 @@ export default function CharacterSelect({ onNavigate }) {
           className="btn-premium"
           onClick={() => onNavigate('payment', { character: active })}
         >
-          Obtener acceso premium — S/ {active.price.toFixed(2)}/mes
+          Obtener acceso premium — S/ {active.price.toFixed(2)} · 12h
         </button>
       </div>
     </div>

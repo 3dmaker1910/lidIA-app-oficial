@@ -1,6 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import './LandingPage.css';
 
+const CHAR_IMAGES = {
+  lidia: 'https://customer-assets.emergentagent.com/wingman/b09505ba-190e-4ca7-9d47-23f73249f18b/attachments/fbc203950cd949e1816dc0c1779db5cc_halcon.jpg',
+  vivian: 'https://customer-assets.emergentagent.com/wingman/b09505ba-190e-4ca7-9d47-23f73249f18b/attachments/8646db67e79a4516858c9d73a2e293b4_lobo.jpg',
+  mia: 'https://customer-assets.emergentagent.com/wingman/b09505ba-190e-4ca7-9d47-23f73249f18b/attachments/56ea4c298f1f4ccaa96ad61cead7d4dc_leopardo.jpg',
+};
+
+const characters = [
+  { key: 'lidia', name: 'lidIA', tagline: 'Arquetipo Inteligente', color: '#8B5CF6', gradient: 'linear-gradient(135deg, #7C3AED, #EC4899)' },
+  { key: 'vivian', name: 'Vivian', tagline: 'Arquetipo Fitness', color: '#EC4899', gradient: 'linear-gradient(135deg, #EC4899, #F97316)' },
+  { key: 'mia', name: 'Mia', tagline: 'Arquetipo Dulce', color: '#F59E0B', gradient: 'linear-gradient(135deg, #F59E0B, #EF4444)' },
+];
+
 const features = [
   { icon: '🧠', title: 'IA de última generación', desc: 'Powered by Llama 3 70B, el modelo más avanzado disponible' },
   { icon: '💜', title: 'Personajes únicos', desc: 'Elige entre lidIA, Vivian y Mia — cada una con su personalidad especial' },
@@ -29,6 +41,25 @@ export default function LandingPage({ onNavigate }) {
             Tu compañera inteligente en español.<br />
             Conversaciones reales, sin límites.
           </p>
+
+          {/* Character photo showcase */}
+          <div className="hero-chars">
+            {characters.map((c) => (
+              <div key={c.key} className="hero-char-item" onClick={() => onNavigate('select')}>
+                <div className="hero-char-ring" style={{ background: c.gradient }}>
+                  <img
+                    src={CHAR_IMAGES[c.key]}
+                    alt={c.name}
+                    className="hero-char-photo"
+                    onError={e => { e.target.style.display = 'none'; }}
+                  />
+                </div>
+                <span className="hero-char-name" style={{ color: c.color }}>{c.name}</span>
+                <span className="hero-char-tagline">{c.tagline}</span>
+              </div>
+            ))}
+          </div>
+
           <div className="hero-actions">
             <button className="btn-primary" onClick={() => onNavigate('select')}>
               Comenzar ahora 💜
@@ -44,8 +75,8 @@ export default function LandingPage({ onNavigate }) {
             </div>
             <div className="stat-divider" />
             <div className="stat">
-              <span className="stat-num">∞</span>
-              <span className="stat-label">Mensajes</span>
+              <span className="stat-num">S/ 2</span>
+              <span className="stat-label">por 12h</span>
             </div>
             <div className="stat-divider" />
             <div className="stat">
@@ -71,8 +102,8 @@ export default function LandingPage({ onNavigate }) {
 
       <div className="landing-cta">
         <div className="cta-card">
-          <h2 className="cta-title">Empieza desde S/ 24.90</h2>
-          <p className="cta-desc">Acceso premium por mes. Cancela cuando quieras.</p>
+          <h2 className="cta-title">Empieza desde S/ 2.00</h2>
+          <p className="cta-desc">Acceso premium por 12 horas. Paga con Yape al 986083251.</p>
           <button className="btn-primary btn-large" onClick={() => onNavigate('select')}>
             Elegir mi personaje →
           </button>
